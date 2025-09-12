@@ -65,9 +65,9 @@ def main():
         return
 
     # カメラからビデオキャプチャを開始
-    capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     if not capture.isOpened():
-        capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     
     if not capture.isOpened():
         print("カメラに接続できませんでした。")
