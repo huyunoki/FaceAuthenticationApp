@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>計測物性工学研究室 勤怠管理</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="header">
+    <div class="header-left">
+        <span class="header-title">計測物性工学研究室</span>
+        <span class="header-menu"><a href="#" class="active">勤怠</a></span>
+        <span class="header-menu"><a href="#">勤怠管理</a></span>
+    </div>
+    <div class="user-info">
+        <form method="post" action="/register">
+            <span class="header-menu">
+                <button type="submit" class="button">顔面新規登録</button>
+            </span>
+        </form>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar">
+    </div>
+
+    <div class="content">
+        <div class="time-display">
+            <span id="currentTime">ロード</span>
+        </div>
+
+        <div class="button-group">
+            <form method="post" action="/attendance">
+                <button type="submit" class="button button-出勤">出勤</button>
+            </form>
+
+            <form method="post" action="/leaving">
+                <button type="submit" class="button button-退勤">退勤</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="/static/js/clock.js"></script>
+</body>
+</html>

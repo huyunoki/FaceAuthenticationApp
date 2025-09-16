@@ -50,9 +50,9 @@ def save_detected_face_with_name():
         os.makedirs(save_dir)
         print(f"ディレクトリ '{save_dir}' を作成しました。")
 
-    capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     if not capture.isOpened():
-        capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     
     if not capture.isOpened():
         print("エラー: カメラに接続できませんでした。")
@@ -60,6 +60,13 @@ def save_detected_face_with_name():
 
     print("カメラを起動しました。高品質な顔が検出されると、画像が保存されます。")
     print(f"『{person_name}』さんの顔を映してください。終了するには 'Esc' キーを押してください。")
+
+    # 💡 変更点1: ウィンドウを事前に作成し、名前を付ける 💡
+    window_name = "face saver"
+    cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
+
+    # 💡 変更点2: ウィンドウを常に最前面に設定 💡
+    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
 
     image_count = 1
     face_detected_time = None
@@ -177,7 +184,7 @@ def save_detected_face_with_name():
             rect = dets[0]
             frame = draw_japanese_text(frame, "顔を検出しました", (rect.left(), rect.top() - 25), font, (0, 255, 0))
 
-        cv2.imshow("Face Saver", frame)
+        cv2.imshow(window_name, frame)
         
         if cv2.waitKey(1) == 27:
             break
