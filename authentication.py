@@ -2,14 +2,16 @@ import cv2
 import dlib
 import os
 import numpy as np
+import time
 from PIL import ImageFont, ImageDraw, Image
 
 # Dlibのモデルファイルをロード (ファイルパスを適宜修正)
 predictor_path = "shape_predictor_68_face_landmarks.dat"
 face_rec_model_path = "dlib_face_recognition_resnet_model_v1.dat"
+
 if not os.path.exists(predictor_path) or not os.path.exists(face_rec_model_path):
     print("エラー: モデルファイルが見つかりません。")
-    exit()
+    pass
 
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor(predictor_path)
@@ -66,7 +68,7 @@ def load_registered_faces():
 font_path = r"C:\Windows\Fonts\meiryo.ttc"
 if not os.path.exists(font_path):
     print("警告: 日本語フォントが見つかりません。")
-    exit()
+    pass
 font = ImageFont.truetype(font_path, 20)
 
 # OpenCVの画像に日本語テキストを描画する関数
@@ -81,59 +83,70 @@ def main():
     registered_faces = load_registered_faces()
     if not registered_faces:
         print("エラー: 認証対象の登録者が見つかりませんでした。")
-        return
+        return None
+
     capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     if not capture.isOpened():
         capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     if not capture.isOpened():
         print("カメラに接続できませんでした。")
-        return
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    detector = dlib.get_frontal_face_detector()
-    print("認証を開始します。カメラに顔を映してください。")
-    window_name = "Real-time Face Authentication"
-    cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
-    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+        return None
     
-    while True:
+    window_name = "Real-time Face Authentication"
+    cv2.namedWindow(window_name)
+    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1) # この行を追加
+    
+    start_time = time.time()
+    while time.time() - start_time < 10:  # 10秒後にタイムアウト
         ret, frame = capture.read()
         if not ret:
             break
         frame = cv2.flip(frame, 1)
         dets = detector(frame, 1)
+        
         result_text = "Finding a match..."
         text_color = (255, 255, 255)
-        match_found = False
+        
         if len(dets) > 0:
             face_rect = dets[0]
+            
             detected_face_img = frame[face_rect.top():face_rect.bottom(), face_rect.left():face_rect.right()]
+            
             if detected_face_img.size > 0:
                 temp_img_path = "temp_face.jpg"
                 cv2.imwrite(temp_img_path, detected_face_img)
                 detected_descriptor, error_msg = get_face_descriptor(temp_img_path)
                 os.remove(temp_img_path)
+                
                 if detected_descriptor is not None:
                     for name, registered_descriptor in registered_faces.items():
                         if are_same_person(registered_descriptor, detected_descriptor):
-                            result_text = f"認証成功: {name} さんです！"
+                            result_text = f"認証成功: {name} さん"
                             text_color = (0, 255, 0)
-                            match_found = True
-                            break
+                            cv2.rectangle(frame, (face_rect.left(), face_rect.top()), (face_rect.right(), face_rect.bottom()), text_color, 2)
+                            frame = draw_japanese_text(frame, result_text, (50, 50), font, text_color)
+                            cv2.imshow("Real-time Face Authentication", frame)
+                            cv2.waitKey(2000)
+                            capture.release()
+                            cv2.destroyAllWindows()
+                            return name
+                            
+                    result_text = "一致する人物が見つかりませんでした"
+                    text_color = (0, 0, 255)
+            
             cv2.rectangle(frame, (face_rect.left(), face_rect.top()), (face_rect.right(), face_rect.bottom()), text_color, 2)
-        if not match_found:
-            if len(dets) > 0:
-                result_text = "一致する人物が見つかりませんでした"
-                text_color = (0, 0, 255)
-            else:
-                result_text = "顔を検出できませんでした"
-                text_color = (255, 255, 255)
-        frame = draw_japanese_text(frame, result_text, (50, 50), font, text_color)
-        cv2.imshow(window_name, frame)
+            frame = draw_japanese_text(frame, result_text, (50, 50), font, text_color)
+            cv2.imshow("Real-time Face Authentication", frame)
+
+        else:
+            result_text = "顔を検出できませんでした"
+            text_color = (255, 255, 255)
+            frame = draw_japanese_text(frame, result_text, (50, 50), font, text_color)
+            cv2.imshow("Real-time Face Authentication", frame)
+        
         if cv2.waitKey(1) == 27:
             break
+            
     capture.release()
     cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    main()
+    return None

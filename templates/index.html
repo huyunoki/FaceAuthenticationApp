@@ -26,6 +26,8 @@
     </div>
 
     <div class="content">
+        <div id="message-area" class="message-area"></div>
+
         <div class="time-display">
             <span id="currentTime">ロード</span>
         </div>
@@ -42,5 +44,30 @@
     </div>
 </div>
 <script src="/static/js/clock.js"></script>
+<script src="/static/js/app.js"></script> <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+        const encodedMessage = urlParams.get('message');
+        const messageArea = document.getElementById('message-area');
+
+        // この部分は、app.pyからのリダイレクト後に実行される
+        if (status && encodedMessage) {
+            const message = decodeURIComponent(encodedMessage.substring(2));
+            if (status === 'success') {
+                messageArea.textContent = `✅ ${message}`;
+                messageArea.className = 'message-area success';
+            } else if (status === 'failure') {
+                messageArea.textContent = `❌ ${message}`;
+                messageArea.className = 'message-area failure';
+            }
+            // メッセージを5秒後に消す
+            setTimeout(() => {
+                messageArea.textContent = '';
+                messageArea.className = 'message-area';
+            }, 5000);
+        }
+    });
+</script>
 </body>
 </html>
